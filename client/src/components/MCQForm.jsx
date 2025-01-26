@@ -63,7 +63,6 @@ export const MCQForm = ({ onAddExam }) => {
         />
       </div>
 
-      {/* Question Form */}
       <div className="p-4 bg-gray-800 rounded mb-4">
         <h4 className="text-md font-bold mb-2">Add Question</h4>
         <div className="mb-2">

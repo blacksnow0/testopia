@@ -8,7 +8,7 @@ export const AdminDashboard = () => {
   const addExam = (exam) => setExams([...exams, exam]);
 
   return (
-    <div className="p-4">
+    <div className="p-4 mt-10">
       <h2 className="text-2xl font-bold mb-4">Admin Dashboard</h2>
       <MCQForm onAddExam={addExam} />
       <div className="mt-6">

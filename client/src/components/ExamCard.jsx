@@ -1,58 +1,72 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import axios from "axios";
 
 export const ExamCard = () => {
-  const { id } = useParams(); // Get the exam ID from the URL
+  const { id } = useParams();
 
-  // Mock static MCQs
-  const mockQuestions = [
-    {
-      question:
-        "What is the output of `console.log(typeof null)` in JavaScript?",
-      choices: ["object", "null", "undefined", "number"],
-      correct: "object",
-    },
-    {
-      question:
-        "Which keyword is used to define a constant variable in JavaScript?",
-      choices: ["var", "let", "const", "constant"],
-      correct: "const",
-    },
-    {
-      question: "What is the Temporal Dead Zone (TDZ)?",
-      choices: [
-        " A situation where this is undefined in a function.",
-        "A phase where variables are declared but cannot be accessed before initialization.",
-        "A state where variables are hoisted to the top of the function.",
-        "A scenario where variables are not hoisted.",
-      ],
-      correct:
-        "A phase where variables are declared but cannot be accessed before initialization.",
-    },
-  ];
+  const [question, setQuestion] = useState([]);
+  const [answers, setAnswers] = useState({});
+
+  useEffect(() => {
+    const fetchExam = async () => {
+      try {
+        const exams = await axios.get(
+          "http://localhost:5003/api/exam/get-all-exams"
+        );
+        console.log(exams.data);
+        setQuestion(exams.data[id].questions);
+      } catch (error) {
+        console.error(`Error: ${error}`);
+      }
+    };
+    fetchExam();
+  }, [id]);
+
+  const handleChoiceSelect = (questionIndex, choiceIndex) => {
+    setAnswers((prev) => ({
+      ...prev,
+      [questionIndex]: choiceIndex,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    console.log(answers);
+  };
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Exam {id}</h2>
       <div className="space-y-6">
-        {mockQuestions.map((q, index) => (
-          <div key={index} className="p-4 ">
+        {question.map((q, questionIndex) => (
+          <div key={questionIndex} className="p-4 ">
             <h3 className="font-bold">
-              {index + 1}. {q.question}
+              {questionIndex + 1}. {q.question}
             </h3>
             <ul className="mt-2">
-              {q.choices.map((choice, i) => (
+              {q.choices.map((choice, choiceIndex) => (
                 <li
-                  key={i}
-                  className="py-1 px-2 border rounded hover:bg-gray-800 cursor-pointer tracking-wider"
+                  key={choiceIndex}
+                  className={`py-1 px-2 mb-2 border border-gray-600 rounded cursor-pointer tracking-wider ${
+                    answers[questionIndex] === choiceIndex
+                      ? "bg-gray-900 text-white"
+                      : "hover:bg-gray-800"
+                  }`}
+                  onClick={() => handleChoiceSelect(questionIndex, choiceIndex)}
                 >
-                  {i + 1} .{choice}
+                  {choiceIndex + 1}. {choice}
                 </li>
               ))}
             </ul>
           </div>
         ))}
       </div>
+      <button
+        onClick={handleSubmit}
+        className="mt-4 bg-gray-900 cursor-pointer hover:bg-blue-900 text-white px-4 py-2 rounded"
+      >
+        Submit Exam
+      </button>
     </div>
   );
 };
