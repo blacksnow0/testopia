@@ -32,7 +32,7 @@ const submitExam = async (req, res) => {
     const result = new Result({ userId, examId, answers, score });
     await result.save();
 
-    res.status(200).json({ message: "Exam submitted successfully." });
+    res.status(200).json({ message: "Exam submitted successfully.", score });
   } catch (err) {
     if (err.code === 11000) {
       return res
@@ -57,14 +57,17 @@ const getTakenExams = async (req, res) => {
     }
 
     const examData = results.map((result) => ({
-      examTitle: result.examId.title,
-      examDescription: result.examId.description,
+      examId: result.examId._id,
+      examTitle: result.examId.title || "",
+      examDescription: result.examId.description || "",
       score: result.score,
       attemptedAt: result.attemptedAt,
     }));
 
     res.status(200).json({ exams: examData });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 module.exports = { submitExam, sayHi, getTakenExams };

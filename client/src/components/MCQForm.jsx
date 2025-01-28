@@ -1,142 +1,128 @@
 import React, { useState } from "react";
 
-export const MCQForm = ({ onAddExam }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [questions, setQuestions] = useState([]);
+export const MCQForm = ({ currentExam, onAddQuestion, onSaveExam }) => {
   const [currentQuestion, setCurrentQuestion] = useState("");
-  const [currentChoices, setCurrentChoices] = useState(["", "", "", ""]);
-  const [correctChoice, setCorrectChoice] = useState(0);
+  const [choices, setChoices] = useState([]);
+  const [newChoice, setNewChoice] = useState("");
+  const [correctChoiceIndex, setCorrectChoiceIndex] = useState(null);
 
-  const handleExamSubmit = (e) => {
-    e.preventDefault();
-    onAddExam({ title, description, questions });
-    setTitle("");
-    setDescription("");
-    setQuestions([]);
+  const handleAddChoice = () => {
+    if (newChoice.trim()) {
+      setChoices([...choices, newChoice]);
+      setNewChoice("");
+    }
   };
 
-  const handleQuestionSubmit = (e) => {
-    e.preventDefault();
-    setQuestions([
-      ...questions,
-      {
-        question: currentQuestion,
-        choices: currentChoices,
-        correct: correctChoice,
-      },
-    ]);
+  const handleAddQuestion = () => {
+    if (
+      !currentQuestion.trim() ||
+      choices.length < 2 ||
+      correctChoiceIndex === null
+    ) {
+      alert(
+        "Please ensure you have added a question, at least two choices, and selected a correct choice."
+      );
+      return;
+    }
+    onAddQuestion({
+      question: currentQuestion,
+      choices,
+      correctChoice: correctChoiceIndex,
+    });
     setCurrentQuestion("");
-    setCurrentChoices(["", "", "", ""]);
-    setCorrectChoice(0);
+    setChoices([]);
+    setNewChoice("");
+    setCorrectChoiceIndex(null);
   };
 
-  const handleChoiceChange = (index, value) => {
-    const updatedChoices = [...currentChoices];
-    updatedChoices[index] = value;
-    setCurrentChoices(updatedChoices);
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter") {
+      handleAddChoice();
+    }
   };
 
   return (
-    <form
-      onSubmit={handleExamSubmit}
-      className="p-4 bg-gray-900 rounded shadow"
-    >
-      <h3 className="text-lg font-bold mb-4">Create an Exam</h3>
+    <div className="shadow-md p-6 rounded-lg mt-6 ">
+      <h3 className="text-xl font-bold mb-4 ">
+        Add Questions for "{currentExam.title}"
+      </h3>
+
+      {/* Question Input */}
       <div className="mb-4">
-        <label className="block mb-2 font-medium">Title</label>
+        <label className="block font-medium mb-2">Question</label>
         <input
           type="text"
-          className="w-full p-2 border rounded"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block mb-2 font-medium">Description</label>
-        <textarea
-          className="w-full p-2 border rounded"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          required
+          value={currentQuestion}
+          onChange={(e) => setCurrentQuestion(e.target.value)}
+          placeholder="Enter your question"
+          className="w-full p-3 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-700"
         />
       </div>
 
-      <div className="p-4 bg-gray-800 rounded mb-4">
-        <h4 className="text-md font-bold mb-2">Add Question</h4>
-        <div className="mb-2">
-          <label className="block mb-1 font-medium">Question</label>
+      {/* Choices Section */}
+      <div className="mb-4">
+        <label className="block font-medium mb-2">Choices</label>
+        {choices.length > 0 && (
+          <ul className="mb-2">
+            {choices.map((choice, index) => (
+              <li
+                key={index}
+                className={`p-2 border rounded mb-2 flex justify-between items-center ${
+                  index === correctChoiceIndex ? "bg-green-800" : "bg-gray-800"
+                }`}
+              >
+                <span>{choice}</span>
+                <button
+                  type="button"
+                  onClick={() => setCorrectChoiceIndex(index)}
+                  className={`px-2 py-1 text-sm rounded ${
+                    index === correctChoiceIndex
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-300 text-gray-700"
+                  }`}
+                >
+                  {index === correctChoiceIndex ? "Correct" : "Set as Correct"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex items-center">
           <input
             type="text"
-            className="w-full p-2 border rounded"
-            value={currentQuestion}
-            onChange={(e) => setCurrentQuestion(e.target.value)}
+            value={newChoice}
+            onChange={(e) => setNewChoice(e.target.value)}
+            onKeyDown={handleKeyPress}
+            placeholder="Enter a choice"
+            className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-yellow-700"
           />
-        </div>
-        {currentChoices.map((choice, index) => (
-          <div key={index} className="mb-2">
-            <label className="block mb-1 font-medium">Choice {index + 1}</label>
-            <input
-              type="text"
-              className="w-full p-2 border rounded"
-              value={choice}
-              onChange={(e) => handleChoiceChange(index, e.target.value)}
-            />
-          </div>
-        ))}
-        <div className="mb-2">
-          <label className="block mb-1 font-medium">Correct Choice</label>
-          <select
-            className="w-full p-2 border rounded"
-            value={correctChoice}
-            onChange={(e) => setCorrectChoice(Number(e.target.value))}
+          <button
+            type="button"
+            onClick={handleAddChoice}
+            className="ml-2 px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-800 transition"
           >
-            {currentChoices.map((_, index) => (
-              <option key={index} value={index}>
-                Choice {index + 1}
-              </option>
-            ))}
-          </select>
+            Add Choice
+          </button>
         </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex justify-between">
         <button
           type="button"
-          onClick={handleQuestionSubmit}
-          className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
+          onClick={handleAddQuestion}
+          className="px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-800 transition"
         >
           Add Question
         </button>
+        <button
+          type="button"
+          onClick={onSaveExam}
+          className="px-4 py-2 bg-green-800 text-white rounded hover:bg-green-700 transition"
+        >
+          Save Quiz
+        </button>
       </div>
-
-      {questions.length > 0 && (
-        <div className="p-4 bg-gray-800 rounded mb-4">
-          <h4 className="text-md font-bold mb-2">Questions Preview</h4>
-          {questions.map((q, index) => (
-            <div key={index} className="mb-2 p-2 border rounded bg-gray-700">
-              <p className="font-medium">
-                {index + 1}. {q.question}
-              </p>
-              <ul className="pl-4">
-                {q.choices.map((choice, i) => (
-                  <li
-                    key={i}
-                    className={i === q.correct ? "text-green-400" : ""}
-                  >
-                    {i + 1}. {choice}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
-
-      <button
-        type="submit"
-        className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Save Exam
-      </button>
-    </form>
+    </div>
   );
 };

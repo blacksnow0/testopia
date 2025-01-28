@@ -1,17 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import ye from "../assets/ye.jpeg";
+import { useAuth } from "../context/AuthContext";
 
 export const StudentDashboard = () => {
-  const mockExams = [
-    {
-      title: "Functions And Objects",
-      description: "JavaScript Programming",
-    },
-    { title: "Scopes", description: "JavScript Programming" },
-  ];
-
   const [exams, setExams] = useState([]);
+  const [completed, setCompleted] = useState([]);
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchExams = async () => {
@@ -27,22 +23,61 @@ export const StudentDashboard = () => {
     fetchExams();
   }, []);
 
+  useEffect(() => {
+    const fetchCompleted = async () => {
+      try {
+        const completedExams = await axios.get(
+          `http://localhost:5003/api/result/get-taken-exams/${user.id}`
+        );
+        setCompleted(completedExams.data.exams);
+      } catch (error) {
+        console.log(`Error:`, error);
+      }
+    };
+    fetchCompleted();
+  });
+
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Student Dashboard</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {exams.map((exam, index) => (
-          <div className="p-4 border rounded shadow hover:shadow-lg">
-            <h3 className="text-xl font-bold">{exam.title}</h3>
-            <p className="text-gray-300">{exam.description}</p>
-            <Link
-              to={`/exam/${index}`}
-              className="mt-4 inline-block px-4 py-2 bg-blue-900 text-white rounded hover:bg-gray-900 cursor-pointer"
-            >
-              Take Test
-            </Link>
-          </div>
-        ))}
+    <div
+      className="p-4 min-h-screen bg-cover bg-center text-white flex  items-center"
+      style={{ backgroundImage: `url(${ye})` }}
+    >
+      <div className="bg-gradient-to-br from-gray-600 to-yellow-700 p-6 py-48 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {exams.map((exam) => {
+            const isCompleted = completed.some(
+              (completedExam) => completedExam.examId === exam._id
+            );
+
+            return (
+              <div
+                key={exam._id}
+                className="p-6 bg-white/10 backdrop-blur-md rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200"
+              >
+                <h3 className="text-xl font-semibold mb-2">{exam.title}</h3>
+                <p className="mb-4">{exam.description}</p>
+
+                {isCompleted ? (
+                  <p className="font-bold text-green-700 w-full bg-gray-800 p-3">
+                    Score:{" "}
+                    {
+                      completed.find(
+                        (completedExam) => completedExam.examId === exam._id
+                      )?.score
+                    }
+                  </p>
+                ) : (
+                  <Link
+                    to={`/exam/${exam._id}`}
+                    className="px-4 py-2 bg-yellow-700 text-white rounded hover:bg-yellow-800 transition-colors duration-200"
+                  >
+                    Take Test
+                  </Link>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -1,30 +1,23 @@
 import React, { useState } from "react";
 import doom from "../assets/doom.jpeg";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  const { login, user } = useAuth();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await axios.post("http://localhost:5003/api/user/login", {
-        username,
-        password,
-      });
 
-      if (res.status === 200) {
-        if (res.data.user.role === "admin") {
-          navigate("/admin");
-        } else if (res.data.user.role === "student") {
-          navigate("/student");
-        }
-      }
+    try {
+      await login(username, password);
+      navigate("/");
     } catch (error) {
-      console.log(error);
+      console.error("Login failed: ", error);
     }
   };
 

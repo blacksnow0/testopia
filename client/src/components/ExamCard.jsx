@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { useAuth } from "../context/AuthContext";
 
 export const ExamCard = () => {
   const { id } = useParams();
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [question, setQuestion] = useState([]);
   const [answers, setAnswers] = useState({});
@@ -11,15 +14,15 @@ export const ExamCard = () => {
   useEffect(() => {
     const fetchExam = async () => {
       try {
-        const exams = await axios.get(
-          "http://localhost:5003/api/exam/get-all-exams"
+        const response = await axios.get(
+          `http://localhost:5003/api/exam/get-exam/${id}`
         );
-        console.log(exams.data);
-        setQuestion(exams.data[id].questions);
+        setQuestion(response.data.questions);
       } catch (error) {
-        console.error(`Error: ${error}`);
+        console.error(`Error fetching exam: ${error}`);
       }
     };
+
     fetchExam();
   }, [id]);
 
@@ -31,11 +34,25 @@ export const ExamCard = () => {
   };
 
   const handleSubmit = async () => {
-    console.log(answers);
+    try {
+      const res = await axios.post(
+        "http://localhost:5003/api/result/submit-exam/",
+        {
+          examId: id,
+          answers,
+          userId: user.id,
+        }
+      );
+
+      alert(res.data.score);
+      navigate("/student");
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 mt-10">
       <h2 className="text-2xl font-bold mb-4">Exam {id}</h2>
       <div className="space-y-6">
         {question.map((q, questionIndex) => (
